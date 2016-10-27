@@ -1,5 +1,5 @@
 #read in table
-date <- read.csv("~/School/Fall 2016/DS 4559/Project 1/Speed Dating Data.csv",na.strings=c(""," ","NA"))
+date <- read.csv("~/School/Fall 2016/DS 4559/Project 1/4559Project1/Speed Dating Data.csv",na.strings=c(""," ","NA"))
 date <- read.csv("")
 library(mlbench)
 library(caret)
