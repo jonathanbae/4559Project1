@@ -6,7 +6,7 @@ library(caret)
 library(C50)
 library(partykit)
 library(gmodels)
-
+#1
 #-------------------
 # Data cleaning
 #-------------------
