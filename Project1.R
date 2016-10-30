@@ -41,11 +41,11 @@ for(x in 1:3){
 }
 
 #Get rows of speeddater by iid for ones missing attribute ratings
-attrMiss <- which(is.na(male$attr))
-sincMiss <- which(is.na(male$sinc))
-intelMiss <- which(is.na(male$intel))  
-funMiss <- which(is.na(male$fun))
-ambMiss <- which(is.na(male$amb))
+attrMiss <- which(is.na(male$attr_o))
+sincMiss <- which(is.na(male$sinc_o))
+intelMiss <- which(is.na(male$intel_o))  
+funMiss <- which(is.na(male$fun_o))
+ambMiss <- which(is.na(male$amb_o))
 
 avera <- function(missing, num){
   #Average attractive from other dates
@@ -67,23 +67,18 @@ avera <- function(missing, num){
     male[i,num] <<- tot/numRate
   }
 }
-avera(attrMiss, 99)
-avera(sincMiss, 100)
-avera(intelMiss, 101)
-avera(funMiss, 102)
-avera(ambMiss, 103)
+avera(attrMiss, 25)
+avera(sincMiss, 26)
+avera(intelMiss, 27)
+avera(funMiss, 28)
+avera(ambMiss, 29)
 #Empty values for iid 465 for fun and intel; 187 for amb
-which(is.na(male$attr))
-which(is.na(male$sinc))
-which(is.na(male$intel))
-which(is.na(male$fun))
-which(is.na(male$amb))
-intelMiss <- which(is.na(male$intel))  
-male[3376,1]
-funMiss <- which(is.na(male$fun))
-ambMiss <- which(is.na(male$amb))
-male[1228,1]
-#For arbitrary values, insert mean into fun, intel and ambition
+which(is.na(male$attr_o))
+which(is.na(male$sinc_o))
+which(is.na(male$intel_o))
+which(is.na(male$fun_o))
+which(is.na(male$amb_o))
+#For arbitrary values, mean imputation
 meanVal <- function(miss, column){
   total = 0
   num = 0
@@ -97,9 +92,7 @@ meanVal <- function(miss, column){
     male[i, column] <<- total/num
   }
 }
-meanVal(intelMiss, 101)
-meanVal(funMiss, 102)
-meanVal(ambMiss, 103)
+
 #View every attribute spread
 hist(male$attr)
 hist(male$sinc)
