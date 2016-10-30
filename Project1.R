@@ -39,7 +39,8 @@ for(x in 1:3){
     }
   }
 }
-#Get rows of speedmaler by iid
+
+#Get rows of speeddater by iid for ones missing attribute ratings
 attrMiss <- which(is.na(male$attr))
 sincMiss <- which(is.na(male$sinc))
 intelMiss <- which(is.na(male$intel))  
@@ -74,38 +75,110 @@ avera(ambMiss, 103)
 #Empty values for iid 465 for fun and intel; 187 for amb
 which(is.na(male$attr))
 which(is.na(male$sinc))
+which(is.na(male$intel))
+which(is.na(male$fun))
+which(is.na(male$amb))
 intelMiss <- which(is.na(male$intel))  
 male[3376,1]
 funMiss <- which(is.na(male$fun))
 ambMiss <- which(is.na(male$amb))
 male[1228,1]
-#For arbitrary values, insert 5 into fun, intel and ambition
-for( i in intelMiss ){
-  male[i, 101] <- 5
-  male[i, 102] <- 5
+#For arbitrary values, insert mean into fun, intel and ambition
+meanVal <- function(miss, column){
+  total = 0
+  num = 0
+  for(i in 1:nrow(male)){
+    if(!is.na(male[i,column])){
+      total = total + male[i, column]
+      num = num + 1
+    }
+  }
+  for(i in miss){
+    male[i, column] <<- total/num
+  }
 }
-for( i in ambMiss ){
-  male[i, 103] <- 5
-}
+meanVal(intelMiss, 101)
+meanVal(funMiss, 102)
+meanVal(ambMiss, 103)
+#View every attribute spread
+hist(male$attr)
+hist(male$sinc)
+hist(male$intel)
+hist(male$fun)
+hist(male$amb)
+
+#View age; remove rows with no age
+hist(male$age)
+which(is.na(male$age))
+male <- male[-which(is.na(male$age)),]
+
+#Field_cd
+which(is.na(male$field_cd))
+male[which(is.na(male$field_cd)), c("iid", "field","field_cd" )]
+#The individual with missing code has Operations research which is field_cd = 5.
+which(male$field == "Operations Research")
+male[1807, c("field_cd")]
+male[which(is.na(male$field_cd)), c("field_cd")] <- 5
+plot(table(male$field_cd))
+#Interesting to note that most people are in the business/econ/finance field; Engineering is a far second
+#and then sciences third
+plot(table(male[which(male$field_cd != 8), c("field_cd")]))
+
+#Race; no native americans
+hist(male$race)
+table(male$race)
+which(is.na(male$race))
+
+#income - too many NAs maybe come back
+which(is.na(male$income))
+
+#goal; most people say it was for fun night out, second to meet new people
+which(is.na(male$goal))
+table(male$goal)
+#look at age bins; as age gets higher more people want serious relationship
+table(male[which(male$age < 23), c("goal")])
+plot(table(male[which(male$age > 23 & male$age < 25), c("goal")]))
+plot(table(male[which(male$age > 25 & male$age < 27), c("goal")]))
+plot(table(male[which(male$age > 27 & male$age < 29), c("goal")]))
+plot(table(male[which(male$age > 29 & male$age < 31), c("goal")]))
+plot(table(male[which(male$age > 31 & male$age < 45), c("goal")]))
+
+#date; remove row with this preference
+which(is.na(male$date))
+male[which(is.na(male$date)), c("iid")]
+male <- male[-which(is.na(male$date)),]
+hist(male$date)
+
+#goout
+which(is.na(male$go_out))
+hist(male$go_out)
+
+#career_c
+which(is.na(male$career_c))
+male[which(is.na(male$career_c)), c("iid", "career","career_c" )]
+#The individual with missing code has tech professional which is field_cd = 5.
+male[which(is.na(male$career_c)), c("career_c")] <- 5
+plot(table(male$career_c))
+#Fields similar to career 
+
+#exhappy
+which(is.na(male$exphappy))
+hist(male$exphappy)
+table(male$exphappy)
+#There are some people who are expecting to be a 1 happiness; why even bother going
+
+#met; assume if no mark just say they have not met
+which(is.na(male$met))
+male[which(is.na(male$met)), c("met")] <- 2
+
+#See if any of the activities are na;
+#sports	tvsports	exercise	dining	museums	art	hiking	gaming
+#clubbing	reading	tv	theater	movies	concerts	music	shopping	yoga
+sapply(male, function(x) sum(is.na(x)))
+
 
 #-------------------
-# Model Creation for Career
+# Model Creation for Male
 #-------------------
-#make a career data frame - where field_cd, career_c is not na
-#attempted to create model with schools but unable to get a tree with enough predictions
-career <- male[which(!is.na(male$undergra)),]
-career <- career[which(!is.na(career$age_o)),]
-set.seed(12345)
-career_rand <- career[order(runif(2407)), ]
-#Split the data frames into 75%/25%
-career_train <- career_rand[1:1805, ]
-career_test  <- career_rand[1806:2407, ]
-#Create a C5.0 model
-career_model <- C5.0(career_train[,c("field_cd", "career_c", "age_o")],career_train$dec_o)
-plot(career_model)
-
-career_pred <- predict(career_model, career_test)
-#Cross tabulation of predicted versus actual classes
-CrossTable(career_test$dec_o, career_pred,
-           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
-           dnn = c('actual default', 'predicted default'))
+#Attributes: age, field_cd, race, (income), goal, date, go_out, career_c, activities, exhappy, attr, sinc
+#intel, fun, amb, shar, met, 
