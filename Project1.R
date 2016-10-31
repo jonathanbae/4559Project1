@@ -175,3 +175,76 @@ sapply(male, function(x) sum(is.na(x)))
 #-------------------
 #Attributes: age, field_cd, race, (income), goal, date, go_out, career_c, activities, exhappy, attr, sinc
 #intel, fun, amb, shar, met, 
+
+# get rid wave 5 and 12 because of their special features
+male <- male[which(male$wave != 5 & male$wave != 12),]
+
+# get a identifier for wave with maganize
+male$magazine <- 0
+for(i in nrow(male)){
+  male[i,"wave"] 
+  if(male[i,"wave"] >= 18){
+    i
+    male[i, "magazine"] = 1
+  }
+}
+# still need mn_sat, tuition,i ncome,
+m <- subset(male, select=c(age, round, race,
+                           goal, date, go_out, exphappy, met,
+                           sports, tvsports, exercise, dining, museums, art,
+                           hiking, gaming, clubbing, reading, tv, theater,
+                           movies, concerts, music, shopping, yoga, magazine, attr_o,
+                           sinc_o, intel_o, fun_o,amb_o, field_cd, career_c, 
+                           dec_o))
+
+m <- m[order(runif(nrow(m))),]
+m_train <- m[1:round(nrow(m)*3/4),]
+m_test <- m[round(nrow(m)*3/4):nrow(m),]
+
+#tree with all vars
+m_tree <- C5.0(m_train[-ncol(m_train)], m_train$dec_o)
+m_pred <- predict(m_tree, m_test[-ncol(m_train)])
+summary(m_tree)
+
+CrossTable(m_test$dec_o, m_pred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
+m_ctree <- ctree(dec_o ~ ., data = m_train)
+m_cpred <- predict(m_ctree, m_test)
+
+m_ctree
+CrossTable(m_test$dec_o, m_cpred,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
+#simplification
+correlationMatrix <- cor(m_train[,c(-32,-33, -34)])
+highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.75)
+m_train <- m_train[,-highlyCorrelated]
+m_test <- m_test[,-highlyCorrelated]
+
+# these simplication does not work well
+m_var <- randomForest(dec_o ~ ., m_train)
+varImpPlot(m_var)
+varImp(m_var)
+
+set.seed(7)
+m_train_rfe <- m_train[1:1000,] 
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+results <- rfe(m_train_rfe[,-ncol(m_train_rfe)], m_train_rfe[,ncol(m_train_rfe)], sizes=c(5:12), rfeControl=control)
+print(results)
+predictors(results)
+plot(results, type=c("g", "o"))
+
+#subsetting
+m_train2 <- subset(m_train, select = c(attr_o, sinc_o, intel_o, fun_o,amb_o,field_cd, career_c, round, age, race, dec_o  ))
+m_test2 <- subset(m_test, select = c(attr_o, sinc_o, intel_o, fun_o,amb_o,field_cd, career_c, round,age, race,dec_o ))
+m_tree2 <- C5.0(m_train2[-ncol(m_train2)], m_train2$dec_o)
+m_pred2 <- predict(m_tree2, m_test2[-ncol(m_train2)])
+
+summary(m_tree2)
+CrossTable(m_test2$dec_o, m_pred2,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
