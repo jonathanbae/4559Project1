@@ -85,12 +85,13 @@ which(is.na(male$amb_o))
 
 #View every attribute spread; The spread of numbers is fairly high (not uniform). May be due to the idea that 
 #the people rating are concious of their ratings and don't wish to be too mean.
+par(mfrow = c(3,2))
 hist(male$attr_o)
 hist(male$sinc_o)
 hist(male$intel_o)
 hist(male$fun_o)
 hist(male$amb_o)
-
+par(mfrow =c(1,1))
 #View age; remove rows with no age
 boxplot(male$age)
 hist(male$age)
@@ -113,9 +114,6 @@ plot(table(male[which(male$field_cd != 8), c("field_cd")]))
 hist(male$race)
 table(male$race)
 which(is.na(male$race))
-
-#income - too many NAs maybe come back
-which(is.na(male$income))
 
 #goal; most people say it was for fun night out, second to meet new people
 which(is.na(male$goal))
@@ -156,7 +154,12 @@ table(male$exphappy)
 #met; assume if no mark just say they have not met
 which(is.na(male$met))
 male[which(is.na(male$met)), c("met")] <- 2
-
+for(i in 1:nrow(male)){
+  if( male[i,c("met")] == 0 || male[i, c("met")] == 7){
+    male[i,c("met")] <- 2
+  }
+}
+droplevels(male$met)
 #See if any of the activities are na;
 #sports	tvsports	exercise	dining	museums	art	hiking	gaming
 #clubbing	reading	tv	theater	movies	concerts	music	shopping	yoga
