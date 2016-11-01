@@ -10,18 +10,9 @@ library(gmodels)
 #-------------------
 # Data cleaning
 #-------------------
-#Male and female data frames
+#Male and female data 
 male <- date[which(date$gender==1),]
-female <- date[which(date$gender==0),]
 
-#number of corr
-plot(table(male$int_corr)) 
-plot(table(female$int_corr))
-
-#Make mn_sat, tuition, income as numeric
-male$mn_sat <- as.numeric(as.character(male$mn_sat))
-male$tuition <- as.numeric(as.character(male$tuition))
-male$income <- as.numeric(as.character(male$income))
 #Decision as factor
 male$field_cd <- factor(male$field_cd)
 male$career_c <- factor(male$career_c)
@@ -32,8 +23,7 @@ male$met <- as.factor(male$met)
 male$go_out <- as.factor(male$go_out)
 male$date <- as.factor(male$date)
 
-#Remove rows where columns 25:29 are null (attr, sinc, intel, fun, amb)
-#Should have 4087 rows
+#Remove rows where columns 25:29 are null (attr_o, sinc_o, intel_o, fun_o, amb_o)
 for(x in 1:3){
   for(i in 1:nrow(male)){
     for(j in 25:29){
@@ -77,6 +67,8 @@ avera(sincMiss, 26)
 avera(intelMiss, 27)
 avera(funMiss, 28)
 avera(ambMiss, 29)
+
+# double check whether there are missing values
 which(is.na(male$attr_o))
 which(is.na(male$sinc_o))
 which(is.na(male$intel_o))
@@ -92,6 +84,7 @@ hist(male$intel_o, main="Intelligent")
 hist(male$fun_o, main="Funny")
 hist(male$amb_o, main="Ambitious")
 par(mfrow =c(1,1))
+
 #View age; remove rows with no age
 boxplot(male$age)
 hist(male$age)
@@ -101,11 +94,13 @@ male <- male[-which(is.na(male$age)),]
 #Field_cd
 which(is.na(male$field_cd))
 male[which(is.na(male$field_cd)), c("iid", "field","field_cd" )]
+
 #The individual with missing code has Operations research which is field_cd = 5.
 which(male$field == "Operations Research")
 male[1807, c("field_cd")]
 male[which(is.na(male$field_cd)), c("field_cd")] <- 5
 plot(table(male$field_cd))
+
 #Interesting to note that most people are in the business/econ/finance field; Engineering is a far second
 #and then sciences third
 plot(table(male[which(male$field_cd != 8), c("field_cd")]))
@@ -118,6 +113,7 @@ which(is.na(male$race))
 #goal; most people say it was for fun night out, second to meet new people
 which(is.na(male$goal))
 table(male$goal)
+
 #look at age bins; as age gets higher more people want serious relationship
 boxplot(male$age)$stats
 par(mfrow=c(2,2))
@@ -127,7 +123,7 @@ plot(table(male[which(male$age > 27 & male$age < 29), c("goal")]), ylab="Frequen
 plot(table(male[which(male$age > 29), c("goal")]), ylab="Frequency", xlab="29 and up")
 par(mfrow=c(1,1))
 
-#date; remove row with this preference
+#date; remove rows without this preference
 which(is.na(male$date))
 male[which(is.na(male$date)), c("iid")]
 male <- male[-which(is.na(male$date)),]
@@ -140,18 +136,17 @@ hist(male$go_out)
 #career_c
 which(is.na(male$career_c))
 male[which(is.na(male$career_c)), c("iid", "career","career_c" )]
-#The individual with missing code has tech professional which is field_cd = 5.
+
+#The individual with missing code has tech professional which is career_c = 5.
 male[which(is.na(male$career_c)), c("career_c")] <- 5
 plot(table(male$career_c))
-#Fields similar to career 
 
 #exhappy
 which(is.na(male$exphappy))
 hist(male$exphappy)
-table(male$exphappy)
 #There are some people who are expecting to be a 1 happiness; why even bother going
 
-#met; assume if no mark just say they have not met
+#met; assume if no mark just say they have not met; assume 0 and 7 mean no (2)
 which(is.na(male$met))
 male[which(is.na(male$met)), c("met")] <- 2
 for(i in 1:nrow(male)){
@@ -160,6 +155,7 @@ for(i in 1:nrow(male)){
   }
 }
 droplevels(male$met)
+
 #See if any of the activities are na;
 #sports	tvsports	exercise	dining	museums	art	hiking	gaming
 #clubbing	reading	tv	theater	movies	concerts	music	shopping	yoga
@@ -427,6 +423,7 @@ m <- subset(male, select=c(age, round, exphappy,
                            sinc_o, intel_o, fun_o,amb_o, field_cd, career_c, magazine, race, met,
                            goal, date, go_out, dec_o))
 
+# create traing and testing samples
 m <- m[order(runif(nrow(m))),]
 m_train <- m[1:round(nrow(m)*3/4),]
 m_test <- m[round(nrow(m)*3/4):nrow(m),]
@@ -455,11 +452,12 @@ highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.75)
 m_train <- m_train[,-highlyCorrelated]
 m_test <- m_test[,-highlyCorrelated]
 
-# Feature selections 
+# Feature selection : random forest
 m_var <- randomForest(dec_o ~ ., m_train)
 varImpPlot(m_var)
 varImp(m_var)
 
+# Feature selection : Recursive Feature Elimination 
 set.seed(7)
 m_train_rfe <- m_train[,] 
 control <- rfeControl(functions=rfFuncs, method="cv", number=10)
