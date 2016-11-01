@@ -1,6 +1,6 @@
 #read in table
 date <- read.csv("~/School/Fall 2016/DS 4559/Project 1/4559Project1/Speed Dating Data.csv",na.strings=c(""," ","NA"))
-date <- read.csv("")
+date <- read.csv("Speed Dating Data.csv",na.strings=c(""," ","NA"))
 library(mlbench)
 library(caret)
 library(C50)
@@ -29,6 +29,8 @@ male$dec_o <- as.factor(male$dec_o)
 male$race <- as.factor(male$race)
 male$goal  <- as.factor(male$goal)
 male$met <- as.factor(male$met)
+male$go_out <- as.factor(male$go_out)
+male$date <- as.factor(male$date)
 
 #Remove rows where columns 99:104 are null (attr, sinc, intel, fun, amb)
 #Should have 4099 rows
@@ -173,6 +175,20 @@ male[which(is.na(male$met)), c("met")] <- 2
 #sports	tvsports	exercise	dining	museums	art	hiking	gaming
 #clubbing	reading	tv	theater	movies	concerts	music	shopping	yoga
 sapply(male, function(x) sum(is.na(x)))
+
+# get a identifier for waves with maganize
+male$magazine <- 0
+for(i in nrow(male)){
+  male[i,"wave"] 
+  if(male[i,"wave"] >= 18){
+    i
+    male[i, "magazine"] = 1
+  }
+}
+male$magazine <- as.factor(male$magazine)
+
+# get rid wave 5 and 12 because of their special features
+male <- male[which(male$wave != 5 & male$wave != 12),]
 
 
 #-------------------
@@ -414,35 +430,19 @@ dtm <- DocumentTermMatrix(text.corpus)
 #-------------------
 # Model Creation for Male
 #-------------------
-#Attributes: age, field_cd, race, (income), goal, date, go_out, career_c, activities, exhappy, attr, sinc
-#intel, fun, amb, shar, met, 
-
-# get rid wave 5 and 12 because of their special features
-male <- male[which(male$wave != 5 & male$wave != 12),]
-
-# get a identifier for wave with maganize
-male$magazine <- 0
-for(i in nrow(male)){
-  male[i,"wave"] 
-  if(male[i,"wave"] >= 18){
-    i
-    male[i, "magazine"] = 1
-  }
-}
-# still need mn_sat, tuition,i ncome,
-m <- subset(male, select=c(age, round, race,
-                           goal, date, go_out, exphappy, met,
+# Choose only variables that reflect the characteristics of the man/speed dating event 
+m <- subset(male, select=c(age, round, exphappy,
                            sports, tvsports, exercise, dining, museums, art,
                            hiking, gaming, clubbing, reading, tv, theater,
-                           movies, concerts, music, shopping, yoga, magazine, attr_o,
-                           sinc_o, intel_o, fun_o,amb_o, field_cd, career_c, 
-                           dec_o))
+                           movies, concerts, music, shopping, yoga, attr_o,
+                           sinc_o, intel_o, fun_o,amb_o, field_cd, career_c, magazine, race, met,
+                           goal, date, go_out, dec_o))
 
 m <- m[order(runif(nrow(m))),]
 m_train <- m[1:round(nrow(m)*3/4),]
 m_test <- m[round(nrow(m)*3/4):nrow(m),]
 
-#tree with all vars
+# Construct a tree for all variables
 m_tree <- C5.0(m_train[-ncol(m_train)], m_train$dec_o)
 m_pred <- predict(m_tree, m_test[-ncol(m_train)])
 summary(m_tree)
@@ -451,6 +451,7 @@ CrossTable(m_test$dec_o, m_pred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual type', 'predicted type'))
 
+# Construct a ctree for all variables
 m_ctree <- ctree(dec_o ~ ., data = m_train)
 m_cpred <- predict(m_ctree, m_test)
 
@@ -459,28 +460,30 @@ CrossTable(m_test$dec_o, m_cpred,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual type', 'predicted type'))
 
-#simplification
-correlationMatrix <- cor(m_train[,c(-32,-33, -34)])
+# Get rid of highly correlated columns
+correlationMatrix <- cor(m_train[,c(-26:-34)])
 highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.75)
 m_train <- m_train[,-highlyCorrelated]
 m_test <- m_test[,-highlyCorrelated]
 
-# these simplication does not work well
+# Feature selections 
 m_var <- randomForest(dec_o ~ ., m_train)
 varImpPlot(m_var)
 varImp(m_var)
 
 set.seed(7)
-m_train_rfe <- m_train[1:1000,] 
+m_train_rfe <- m_train[,] 
 control <- rfeControl(functions=rfFuncs, method="cv", number=10)
 results <- rfe(m_train_rfe[,-ncol(m_train_rfe)], m_train_rfe[,ncol(m_train_rfe)], sizes=c(5:12), rfeControl=control)
 print(results)
 predictors(results)
 plot(results, type=c("g", "o"))
 
-#subsetting
-m_train2 <- subset(m_train, select = c(attr_o, sinc_o, intel_o, fun_o,amb_o,field_cd, career_c, round, age, race, dec_o  ))
-m_test2 <- subset(m_test, select = c(attr_o, sinc_o, intel_o, fun_o,amb_o,field_cd, career_c, round,age, race,dec_o ))
+# Choose only vars that have high importance or are intuitively right
+m_train2 <- subset(m_train, select = c(attr_o, sinc_o, intel_o, fun_o,amb_o,field_cd, career_c, round, age, race, date, dec_o  ))
+m_test2 <- subset(m_test, select = c(attr_o, sinc_o, intel_o, fun_o,amb_o,field_cd, career_c, round,age, race, date,dec_o ))
+
+# Construct a simplified tree 
 m_tree2 <- C5.0(m_train2[-ncol(m_train2)], m_train2$dec_o)
 m_pred2 <- predict(m_tree2, m_test2[-ncol(m_train2)])
 
@@ -488,4 +491,16 @@ summary(m_tree2)
 CrossTable(m_test2$dec_o, m_pred2,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual type', 'predicted type'))
+
+
+# Construct a simplified ctree
+m_ctree2 <- ctree(dec_o ~ ., data = m_train2)
+m_cpred2 <- predict(m_ctree2, m_test2)
+m_ctree2
+
+summary(m_tree2)
+CrossTable(m_test2$dec_o, m_cpred2,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+
 
