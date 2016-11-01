@@ -485,9 +485,8 @@ CrossTable(m_test2$dec_o, m_pred2,
 # Construct a simplified ctree
 m_ctree2 <- ctree(dec_o ~ ., data = m_train2)
 m_cpred2 <- predict(m_ctree2, m_test2)
-m_ctree2
 
-summary(m_tree2)
+m_ctree2
 CrossTable(m_test2$dec_o, m_cpred2,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual type', 'predicted type'))
