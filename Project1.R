@@ -32,12 +32,12 @@ male$met <- as.factor(male$met)
 male$go_out <- as.factor(male$go_out)
 male$date <- as.factor(male$date)
 
-#Remove rows where columns 99:104 are null (attr, sinc, intel, fun, amb)
-#Should have 4099 rows
+#Remove rows where columns 25:29 are null (attr, sinc, intel, fun, amb)
+#Should have 4087 rows
 for(x in 1:3){
   for(i in 1:nrow(male)){
-    for(j in 99:103){
-      if(is.na(male[i,j]) && j == 103){
+    for(j in 25:29){
+      if(is.na(male[i,j]) && j == 29){
         male <- male[-i,]
      } 
       if(!is.na(male[i,j])) break
@@ -77,34 +77,19 @@ avera(sincMiss, 26)
 avera(intelMiss, 27)
 avera(funMiss, 28)
 avera(ambMiss, 29)
-#Empty values for iid 465 for fun and intel; 187 for amb
 which(is.na(male$attr_o))
 which(is.na(male$sinc_o))
 which(is.na(male$intel_o))
 which(is.na(male$fun_o))
 which(is.na(male$amb_o))
-#For arbitrary values, mean imputation
-meanVal <- function(miss, column){
-  total = 0
-  num = 0
-  for(i in 1:nrow(male)){
-    if(!is.na(male[i,column])){
-      total = total + male[i, column]
-      num = num + 1
-    }
-  }
-  for(i in miss){
-    male[i, column] <<- total/num
-  }
-}
 
 #View every attribute spread; The spread of numbers is fairly high (not uniform). May be due to the idea that 
 #the people rating are concious of their ratings and don't wish to be too mean.
-hist(male$attr)
-hist(male$sinc)
-hist(male$intel)
-hist(male$fun)
-hist(male$amb)
+hist(male$attr_o)
+hist(male$sinc_o)
+hist(male$intel_o)
+hist(male$fun_o)
+hist(male$amb_o)
 
 #View age; remove rows with no age
 boxplot(male$age)
@@ -136,12 +121,13 @@ which(is.na(male$income))
 which(is.na(male$goal))
 table(male$goal)
 #look at age bins; as age gets higher more people want serious relationship
-table(male[which(male$age < 23), c("goal")])
-plot(table(male[which(male$age > 23 & male$age < 25), c("goal")]))
-plot(table(male[which(male$age > 25 & male$age < 27), c("goal")]))
-plot(table(male[which(male$age > 27 & male$age < 29), c("goal")]))
-plot(table(male[which(male$age > 29 & male$age < 31), c("goal")]))
-plot(table(male[which(male$age > 31 & male$age < 45), c("goal")]))
+boxplot(male$age)$stats
+par(mfrow=c(2,2))
+plot(table(male[which(male$age > 18 & male$age < 24), c("goal")]), ylab="Frequency", xlab="18 to 24")
+plot(table(male[which(male$age > 24 & male$age < 27), c("goal")]), ylab="Frequency", xlab="24 to 27")
+plot(table(male[which(male$age > 27 & male$age < 29), c("goal")]), ylab="Frequency", xlab="27 to 29")
+plot(table(male[which(male$age > 29), c("goal")]), ylab="Frequency", xlab="29 and up")
+par(mfrow=c(1,1))
 
 #date; remove row with this preference
 which(is.na(male$date))
