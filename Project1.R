@@ -27,6 +27,8 @@ male$field_cd <- factor(male$field_cd)
 male$career_c <- factor(male$career_c)
 male$dec_o <- as.factor(male$dec_o)
 male$race <- as.factor(male$race)
+male$goal  <- as.factor(male$goal)
+male$met <- as.factor(male$met)
 
 #Remove rows where columns 99:104 are null (attr, sinc, intel, fun, amb)
 #Should have 4099 rows
@@ -103,6 +105,7 @@ hist(male$fun)
 hist(male$amb)
 
 #View age; remove rows with no age
+boxplot(male$age)
 hist(male$age)
 which(is.na(male$age))
 male <- male[-which(is.na(male$age)),]
