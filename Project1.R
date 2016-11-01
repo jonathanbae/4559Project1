@@ -26,6 +26,7 @@ male$income <- as.numeric(as.character(male$income))
 male$field_cd <- factor(male$field_cd)
 male$career_c <- factor(male$career_c)
 male$dec_o <- as.factor(male$dec_o)
+male$race <- as.factor(male$race)
 
 #Remove rows where columns 99:104 are null (attr, sinc, intel, fun, amb)
 #Should have 4099 rows
@@ -93,7 +94,8 @@ meanVal <- function(miss, column){
   }
 }
 
-#View every attribute spread
+#View every attribute spread; The spread of numbers is fairly high (not uniform). May be due to the idea that 
+#the people rating are concious of their ratings and don't wish to be too mean.
 hist(male$attr)
 hist(male$sinc)
 hist(male$intel)
