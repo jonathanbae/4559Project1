@@ -1,3 +1,5 @@
+#Jonathan Bae (jjb2mu)
+#Haotian Li (hl3gy)
 #read in table
 date <- read.csv("~/School/Fall 2016/DS 4559/Project 1/4559Project1/Speed Dating Data.csv",na.strings=c(""," ","NA"))
 date <- read.csv("Speed Dating Data.csv",na.strings=c(""," ","NA"))
