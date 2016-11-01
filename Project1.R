@@ -86,11 +86,11 @@ which(is.na(male$amb_o))
 #View every attribute spread; The spread of numbers is fairly high (not uniform). May be due to the idea that 
 #the people rating are concious of their ratings and don't wish to be too mean.
 par(mfrow = c(3,2))
-hist(male$attr_o)
-hist(male$sinc_o)
-hist(male$intel_o)
-hist(male$fun_o)
-hist(male$amb_o)
+hist(male$attr_o, main="Attractive")
+hist(male$sinc_o, main="Sincere")
+hist(male$intel_o, main="Intelligent")
+hist(male$fun_o, main="Funny")
+hist(male$amb_o, main="Ambitious")
 par(mfrow =c(1,1))
 #View age; remove rows with no age
 boxplot(male$age)
