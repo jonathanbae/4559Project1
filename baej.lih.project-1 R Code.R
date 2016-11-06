@@ -480,15 +480,30 @@ summary(m_tree2)
 CrossTable(m_test2$dec_o, m_pred2,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual type', 'predicted type'))
-
+plot(m_tree2)
 
 # Construct a simplified ctree
 m_ctree2 <- ctree(dec_o ~ ., data = m_train2)
 m_cpred2 <- predict(m_ctree2, m_test2)
 
-m_ctree2
+plot(m_ctree2)
 CrossTable(m_test2$dec_o, m_cpred2,
            prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
            dnn = c('actual type', 'predicted type'))
 
+
+# for presentation
+# Choose only vars that have high importance or are intuitively right
+m_train2 <- subset(m_train, select = c(attr_o, sinc_o, fun_o,field_cd, career_c, age, race, date, dec_o  ))
+m_test2 <- subset(m_test, select = c(attr_o, sinc_o, fun_o,field_cd, career_c,age, race, date,dec_o ))
+
+# Construct a simplified tree 
+m_tree2 <- C5.0(m_train2[-ncol(m_train2)], m_train2$dec_o)
+m_pred2 <- predict(m_tree2, m_test2[-ncol(m_train2)])
+
+summary(m_tree2)
+CrossTable(m_test2$dec_o, m_pred2,
+           prop.chisq = FALSE, prop.c = FALSE, prop.r = FALSE,
+           dnn = c('actual type', 'predicted type'))
+plot(m_tree2)
 
